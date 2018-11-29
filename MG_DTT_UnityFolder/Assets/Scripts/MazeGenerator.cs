@@ -11,16 +11,23 @@ public class MazeGenerator : MonoBehaviour
     public GameObject gridObject;
     public Grid grid;
     public int x = 10, y = 10;
+    public int seed = 0;
+
     #region Maze Methods & Logic
 
     //Generates a maze dependent on size
     public void Generate(int x, int y)
     {
+       
         //Step 0 check if maze isn't already generated
         if (gridObject != null)
         {
             DestroyMaze();
         }
+
+        //Comment if testing
+        seed = Random.Range(-10000000, 10000000);
+
 
         //Step 1 generate a grid
 
@@ -29,11 +36,15 @@ public class MazeGenerator : MonoBehaviour
         
         grid = gridObject.AddComponent<Grid>();
         grid.SetDimensions(x, y);
-        grid.Init();
+        grid.Init(seed);
 
         
-        //Step 2 generate a path
+       //Step 2 create edges on the mazes
+        grid.SetEdges();
 
+       //Step 3 initialize random state and assign entry points
+      
+       grid.SetEntryPoints();
     }
     //Generates a maze dependent on size
     public void DestroyMaze()
@@ -69,8 +80,15 @@ public class MazeGenerator : MonoBehaviour
             if (grid.tileGrid.Count > 0)
                 for (int i = 0; i < grid.tileGrid.Count; i++)
                 {
-                    Gizmos.color = Color.black;
-                    Gizmos.DrawSphere(grid.tileGrid[i].transform.position, 0.5F);
+                    if (grid.tileGrid[i].GetComponent<Tile>().isWall)
+                    {
+                        Gizmos.color = Color.black;
+                    }
+                    else
+                    {
+                        Gizmos.color = Color.white;
+                    }
+                    Gizmos.DrawCube(grid.tileGrid[i].transform.position, new Vector3(1,0.1F,1));
                 }
         }
     }

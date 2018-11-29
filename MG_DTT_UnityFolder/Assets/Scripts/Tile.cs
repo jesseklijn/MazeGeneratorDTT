@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Tile : MonoBehaviour {
+public class Tile : MonoBehaviour
+{
+    public bool isWall = false;
 
 	// Use this for initialization
 	void Start () {
