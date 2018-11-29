@@ -51,16 +51,16 @@ public class Grid : MonoBehaviour
         for (int i = 0; i < tileGrid.Count; i++)
         {
             //Checks whether the selected tile is on the edge of the maze..
-            if (tileGrid[i].transform.position.x == transform.position.x || 
-                tileGrid[i].transform.position.z == transform.position.z || 
-                tileGrid[i].transform.position.x == (xSize - 1) || 
+            if (tileGrid[i].transform.position.x == transform.position.x ||
+                tileGrid[i].transform.position.z == transform.position.z ||
+                tileGrid[i].transform.position.x == (xSize - 1) ||
                 tileGrid[i].transform.position.z == (ySize - 1))
             {
                 //If it is on the edge, mark it as a wall and add it to the wall list.
                 AddToWallList(tileGrid[i]);
             }
 
-          
+
         }
     }
 
@@ -70,26 +70,74 @@ public class Grid : MonoBehaviour
         float distance = 0;
         Debug.Log("Setting entry points");
 
-        int entryIndex = Random.Range(0, (wallList.Count - 1));
-        Debug.Log(entryIndex);
-        int exitIndex = Random.Range(0, (wallList.Count - 1)); 
-
         int attempts = 0;
-        while (distance <= xSize / DIVIDER  )
+        int entryIndex = Random.Range(0, (wallList.Count - 1));
+        while (attempts < 1000)
         {
             attempts++;
-            exitIndex = Random.Range(0, (wallList.Count - 1));
+            if (wallList[entryIndex].transform.position.x == transform.position.x &
+                wallList[entryIndex].transform.position.z == transform.position.z || //0,0
+                wallList[entryIndex].transform.position.x == transform.position.x &
+                wallList[entryIndex].transform.position.z == transform.position.z + ySize-1 || //0,3
+                wallList[entryIndex].transform.position.x == transform.position.x + xSize-1 &
+                wallList[entryIndex].transform.position.z == transform.position.z + ySize-1 || //3,3
+                wallList[entryIndex].transform.position.x == transform.position.x + xSize-1 &
+                wallList[entryIndex].transform.position.z == transform.position.z) //3,0
+            {
+                
+                entryIndex = Random.Range(0, (wallList.Count - 1));
+            }
+            else
+            {
+                Debug.Log(wallList[entryIndex].transform.position.x + "|" + wallList[entryIndex].transform.position.z);
+                break;
+            }
+        }
+        Debug.Log("attempts made:" + attempts);
+        attempts = 0;
+        Debug.Log(entryIndex);
+        int exitIndex = Random.Range(0, (wallList.Count - 1));
 
-            distance = Vector3.Distance(wallList[entryIndex].transform.position,
-                wallList[exitIndex].transform.position);
-            Debug.Log("Distance captured: " + distance);
+        attempts = 0;
+        while (attempts < 200)
+        {
+            //count the attempts, to make sure Unity doesn't crash 
+            attempts++;
+
+            //Assign a new random index for the exit
+
+            exitIndex = Random.Range(0, (wallList.Count - 1));
+            if (wallList[exitIndex].transform.position.x == transform.position.x &
+                wallList[exitIndex].transform.position.z == transform.position.z || //0,0
+                wallList[exitIndex].transform.position.x == transform.position.x &
+                wallList[exitIndex].transform.position.z == transform.position.z + ySize -1 || //0,3
+                wallList[exitIndex].transform.position.x == transform.position.x + xSize -1&
+                wallList[exitIndex].transform.position.z == transform.position.z + ySize -1 || //3,3
+                wallList[exitIndex].transform.position.x == transform.position.x + xSize -1 &
+                wallList[exitIndex].transform.position.z == transform.position.z) //3,0
+                continue;
+            else
+            {
+                //assign a new distance and see if the entry and exit are apart 
+                distance = Vector3.Distance(wallList[entryIndex].transform.position,
+                    wallList[exitIndex].transform.position);
+                Debug.Log("Distance captured: " + distance);
+                if (distance > xSize / DIVIDER | distance > ySize / DIVIDER)
+                {
+                    break;
+                }
+            }
+
+            
         }
 
-        if (distance > xSize / DIVIDER)
+        if (distance > xSize / DIVIDER | distance > ySize / DIVIDER)
         {
-            Debug.Log("Found an suitable entry and exit point");
-            RemoveWallListItem(wallList[entryIndex]);
-            RemoveWallListItem(wallList[exitIndex]);
+            Debug.Log("Found an suitable entry [" + entryIndex + "(" + wallList[entryIndex].transform.position + ")] and exit point[" + exitIndex + "(" + wallList[exitIndex].transform.position + ")]");
+            GameObject exit = wallList[exitIndex];
+            GameObject entry = wallList[entryIndex];
+            RemoveWallListItem(entry);
+            RemoveWallListItem(exit);
 
             return;
 
@@ -106,7 +154,7 @@ public class Grid : MonoBehaviour
     //Generates a grid of tiles
     void Generate(int xSize, int ySize)
     {
-       
+
 
 
         for (int i = 0; i < xSize; i++)
@@ -114,9 +162,9 @@ public class Grid : MonoBehaviour
             for (int j = 0; j < ySize; j++)
             {
                 //instantiate and keep the tile in a list for reference 
-                GameObject tile = Instantiate(tilePrefab, new Vector3(i,transform.position.y,j),Quaternion.identity, transform);
+                GameObject tile = Instantiate(tilePrefab, new Vector3(i, transform.position.y, j), Quaternion.identity, transform);
                 tileGrid.Add(tile);
-               
+
             }
 
         }
@@ -146,7 +194,7 @@ public class Grid : MonoBehaviour
     {
         tileObject.GetComponent<Tile>().isWall = false;
         wallList.Remove(tileObject);
-        
+
     }
     #endregion
 
