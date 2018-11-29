@@ -7,6 +7,8 @@ using UnityEngine;
 
 public class MazeGenerator : MonoBehaviour
 {
+    public GameObject gridPrefab;
+    public GameObject gridObject;
     public Grid grid;
     public int x = 10, y = 10;
     #region Maze Methods & Logic
@@ -14,9 +16,32 @@ public class MazeGenerator : MonoBehaviour
     //Generates a maze dependent on size
     public void Generate(int x, int y)
     {
-        grid = new Grid(x, y);
-    }
+        //Step 0 check if maze isn't already generated
+        if (gridObject != null)
+        {
+            DestroyMaze();
+        }
 
+        //Step 1 generate a grid
+
+        gridObject = Instantiate(gridPrefab, transform.position, Quaternion.identity, transform);
+
+        
+        grid = gridObject.AddComponent<Grid>();
+        grid.SetDimensions(x, y);
+        grid.Init();
+
+        
+        //Step 2 generate a path
+
+    }
+    //Generates a maze dependent on size
+    public void DestroyMaze()
+    {
+
+        DestroyImmediate(gridObject);
+
+    }
     #endregion
 
     //Contains all unity methods
@@ -45,7 +70,7 @@ public class MazeGenerator : MonoBehaviour
                 for (int i = 0; i < grid.tileGrid.Count; i++)
                 {
                     Gizmos.color = Color.black;
-                    Gizmos.DrawSphere(grid.tileGrid[i].position, 0.5F);
+                    Gizmos.DrawSphere(grid.tileGrid[i].transform.position, 0.5F);
                 }
         }
     }

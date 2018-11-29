@@ -9,6 +9,7 @@ public class MazeEditor : Editor
 
     public override void OnInspectorGUI()
     {
+
         if(GUILayout.Button("Generate"))
         {
 
@@ -17,7 +18,15 @@ public class MazeEditor : Editor
 
 
         }
+        if (GUILayout.Button("Destroy"))
+        {
 
+            MazeGenerator mazeGenerator = (MazeGenerator)target;
+            mazeGenerator.DestroyMaze();
+
+
+        }
+        DrawDefaultInspector();
     }
 
 
