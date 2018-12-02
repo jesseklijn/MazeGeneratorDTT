@@ -44,7 +44,7 @@ public class MazeGenerator : MonoBehaviour
 
         //Step 3 initialize random state and assign entry points
 
-        //grid.SetEntryPoints();
+        grid.SetEntryPoints();
 
         //Step 4 start the maze generator to generate a perfect maze.
         //while (true)
@@ -104,14 +104,29 @@ public class MazeGenerator : MonoBehaviour
             if (grid.tileGrid.Count > 0)
                 for (int i = 0; i < grid.tileGrid.Count; i++)
                 {
+                    Tile tile = grid.tileGrid[i].GetComponent<Tile>();
+                    if (tile.isEntry == true)
+                    {
+                        Gizmos.color = Color.green;
+
+                    }
+                    else if (tile.isExit == true)
+                    {
+                        Gizmos.color = Color.cyan;
+                    }
+                    else
+                    {
+
                         Gizmos.color = Color.white;
-                    
+
+                    }
+
                     Gizmos.DrawCube(grid.tileGrid[i].transform.position, new Vector3(1, 0.1F, 1));
 
                     Gizmos.color = Color.black;
                     Vector3 tilePos = grid.tileGrid[i].transform.position;
                     
-                    Tile tile = grid.tileGrid[i].GetComponent<Tile>();
+                
                     tilePos = new Vector3(tilePos.x - (tile.size/2), tilePos.y + 0.1F, tilePos.z - (tile.size/2));
                     for (int j = 0; j < tile.walls.Length; j++)
                     {

@@ -20,8 +20,8 @@ public class Grid : MonoBehaviour
 
     //Holds entry and exit points for maze 
     //TODO: Add this as an extension of grid
-    private GameObject entry;
-    private GameObject exit;
+    private Tile entry;
+    private Tile exit;
 
     //Magic numbers
     public const int DIVIDER = 2;
@@ -83,74 +83,58 @@ public class Grid : MonoBehaviour
         float distance = 0;
         Debug.Log("Setting entry points");
 
-        int attempts = 0;
         int entryIndex = Random.Range(0, (edgeList.Count - 1));
-        while (attempts < 1000)
-        {
-            attempts++;
-            if (edgeList[entryIndex].transform.position.x == transform.position.x &
-                edgeList[entryIndex].transform.position.z == transform.position.z || //0,0
-                edgeList[entryIndex].transform.position.x == transform.position.x &
-                edgeList[entryIndex].transform.position.z == transform.position.z + ySize-1 || //0,3
-                edgeList[entryIndex].transform.position.x == transform.position.x + xSize-1 &
-                edgeList[entryIndex].transform.position.z == transform.position.z + ySize-1 || //3,3
-                edgeList[entryIndex].transform.position.x == transform.position.x + xSize-1 &
-                edgeList[entryIndex].transform.position.z == transform.position.z) //3,0
-            {
-                
-                entryIndex = Random.Range(0, (edgeList.Count - 1));
-            }
-            else
-            {
-                Debug.Log(edgeList[entryIndex].transform.position.x + "|" + edgeList[entryIndex].transform.position.z);
-                break;
-            }
-        }
-        Debug.Log("attempts made:" + attempts);
-        attempts = 0;
-        Debug.Log(entryIndex);
+
         int exitIndex = Random.Range(0, (edgeList.Count - 1));
 
-        attempts = 0;
-        while (attempts < 200)
+        while (true)
         {
-            //count the attempts, to make sure Unity doesn't crash 
-            attempts++;
 
-            //Assign a new random index for the exit
-
-            exitIndex = Random.Range(0, (edgeList.Count - 1));
-            if (edgeList[exitIndex].transform.position.x == transform.position.x &
-                edgeList[exitIndex].transform.position.z == transform.position.z || //0,0
-                edgeList[exitIndex].transform.position.x == transform.position.x &
-                edgeList[exitIndex].transform.position.z == transform.position.z + ySize -1 || //0,3
-                edgeList[exitIndex].transform.position.x == transform.position.x + xSize -1&
-                edgeList[exitIndex].transform.position.z == transform.position.z + ySize -1 || //3,3
-                edgeList[exitIndex].transform.position.x == transform.position.x + xSize -1 &
-                edgeList[exitIndex].transform.position.z == transform.position.z) //3,0
-                continue;
+            //assign a new distance and see if the entry and exit are apart 
+            distance = Vector2.Distance(edgeList[entryIndex].GetComponent<Tile>().position,
+                edgeList[exitIndex].GetComponent<Tile>().position);
+            Debug.Log("Distance captured: " + distance);
+            if (distance > xSize / DIVIDER | distance > ySize / DIVIDER)
+            {
+                break;
+            }
             else
             {
-                //assign a new distance and see if the entry and exit are apart 
-                distance = Vector3.Distance(edgeList[entryIndex].transform.position,
-                    edgeList[exitIndex].transform.position);
-                Debug.Log("Distance captured: " + distance);
-                if (distance > xSize / DIVIDER | distance > ySize / DIVIDER)
-                {
-                    break;
-                }
+                entryIndex = Random.Range(0, (edgeList.Count - 1));
+                exitIndex = Random.Range(0, (edgeList.Count - 1));
             }
 
-            
         }
 
         if (distance > xSize / DIVIDER | distance > ySize / DIVIDER)
         {
             Debug.Log("Found an suitable entry [" + entryIndex + "(" + edgeList[entryIndex].transform.position + ")] and exit point[" + exitIndex + "(" + edgeList[exitIndex].transform.position + ")]");
-            exit = edgeList[exitIndex];
-            entry = edgeList[entryIndex];
-            //RemoveWallListItem(entry);
-            //RemoveWallListItem(exit);
+            exit = edgeList[exitIndex].GetComponent<Tile>();
+            entry = edgeList[entryIndex].GetComponent<Tile>();
+            exit.isExit = true;
+            entry.isEntry = true;
+
+            //Remove the walls of one at the exit
+            for (int i = 0; i < exit.walls.Length; i++)
+            {
+                if (exit.walls[i] == true)
+                {
+                    exit.walls[i] = false;
+                    break;
+                }
+
+            }
+
+            //Remove the walls of one at the entry
+            for (int i = 0; i < entry.walls.Length; i++)
+            {
+                if (entry.walls[i] == true)
+                {
+                    entry.walls[i] = false;
+                    break;
+                }
+
+            }
 
             return;
 
@@ -176,7 +160,9 @@ public class Grid : MonoBehaviour
             {
                 //instantiate and keep the tile in a list for reference 
                 GameObject tile = Instantiate(tilePrefab, new Vector3(i, transform.position.y, j), Quaternion.identity, transform);
+                //Assign a position
                 tile.GetComponent<Tile>().position = new Vector2(i, j);
+                //Add it to a tilegrid list for shortcut access
                 tileGrid.Add(tile);
 
             }
@@ -186,7 +172,9 @@ public class Grid : MonoBehaviour
         //fill neighbours
         for (int i = 0; i < tileGrid.Count; i++)
         {
+            //Store the tile component
             Tile tile = tileGrid[i].GetComponent<Tile>();
+            //Check all four neigbour to be filled
             for (int j = 0; j < tile.neighbours.Length; j++)
             {
                 tile.neighbours[j] = GetNeighbourTile(tile, j);
@@ -195,6 +183,7 @@ public class Grid : MonoBehaviour
 
     }
 
+    //Retrieves if possible a neighbour tile and sets it on the 
     Tile GetNeighbourTile(Tile from ,int i)
     {
         for (int j = 0; j < tileGrid.Count; j++)

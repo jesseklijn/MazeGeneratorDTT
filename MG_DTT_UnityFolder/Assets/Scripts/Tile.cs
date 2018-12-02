@@ -18,6 +18,9 @@ public class Tile : MonoBehaviour
     //Position on the grid
     public Vector2 position;
 
+    //Entry and exit data
+    public bool isEntry = false, isExit = false;
+
     // Use this for initialization
     void Start()
     {
