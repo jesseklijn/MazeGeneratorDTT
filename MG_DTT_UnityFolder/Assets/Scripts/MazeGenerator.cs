@@ -67,7 +67,7 @@ public class MazeGenerator : MonoBehaviour
         {
 
             Solver();
-            //Random.InitState((int)System.DateTime.Now.Ticks);
+           
         }
     }
 
