@@ -38,7 +38,7 @@ public class MazeGenerator : MonoBehaviour
         visited = new List<Tile>();
 
         //Change the seed
-        seed = Random.Range(-10000000, 10000000);
+        seed = Random.Range(0,(int)System.DateTime.Now.Ticks);
 
         //init the random here and in grid
         Random.InitState(seed);
@@ -65,47 +65,52 @@ public class MazeGenerator : MonoBehaviour
         //Step 4 start the maze generator to generate a perfect maze.
         while (visited.Count != (x * y))
         {
+
             Solver();
+            //Random.InitState((int)System.DateTime.Now.Ticks);
         }
     }
 
     public void Solver()
     {
-       
+
+      
         //Get the current cell
         Tile currentTile = stack.Peek();
-        Debug.Log("Current tile: [" + currentTile.position +"]");
+        //Debug.Log("Current tile: [" + currentTile.position +"]");
         //Get neighbours from this cell that are not visited yet
         List<int> neighbours = currentTile.HasNeighbours();
-        Debug.Log("Has "+neighbours.Count+" available.");
+        //Debug.Log("Has "+neighbours.Count+" available.");
         //Check if there are any neighbours unvisited
         if (neighbours.Count > 0)
         {
             //Choose a random index from the collection of available neighbours
 
-            
-                int i = Random.Range(0, neighbours.Count - 1);
-                currentTile.RemoveWall(neighbours[i]);
-                stack.Push(currentTile.neighbours[neighbours[i]]); //-1 to get index
-                Debug.Log("Has chosen " + neighbours[i] + " as neighbour to visit.");
-               
-           
-           
+            //Debug.Log("I chose between: 0 and " + (neighbours.Count));
+
+            int i = Random.Range(0, neighbours.Count);
+            //Debug.Log("Has chosen " + i + " as neighbour to visit.");
+            //Debug.Log("Trying it myself.." + Random.Range(0, neighbours.Count));
+            currentTile.RemoveWall(neighbours[i]);
+            stack.Push(currentTile.neighbours[neighbours[i]]); //-1 to get index
+          
+
+
+
             //mark visited
-            Debug.Log("Added to visited and set visit to true.");
+            //Debug.Log("Added to visited and set visit to true.");
             visited.Add(stack.Peek());
             stack.Peek().isVisited = true;
+          
         }
         else
         {
             stack.Pop(); //backtracks
+          
         }
 
-        
-
-
+       
     }
-
 
     //Destroys a maze
     public void DestroyMaze()
