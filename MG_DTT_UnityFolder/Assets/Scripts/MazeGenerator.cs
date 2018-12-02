@@ -18,7 +18,7 @@ public class MazeGenerator : MonoBehaviour
     //Generates a maze dependent on size
     public void Generate(int x, int y)
     {
-       
+
         //Step 0 check if maze isn't already generated
         if (gridObject != null)
         {
@@ -33,20 +33,44 @@ public class MazeGenerator : MonoBehaviour
 
         gridObject = Instantiate(gridPrefab, transform.position, Quaternion.identity, transform);
 
-        
+
         grid = gridObject.AddComponent<Grid>();
         grid.SetDimensions(x, y);
         grid.Init(seed);
 
-        
-       //Step 2 create edges on the mazes
+
+        //Step 2 create edges on the mazes
         grid.SetEdges();
 
-       //Step 3 initialize random state and assign entry points
-      
-       grid.SetEntryPoints();
+        //Step 3 initialize random state and assign entry points
+
+        //grid.SetEntryPoints();
+
+        //Step 4 start the maze generator to generate a perfect maze.
+        //while (true)
+        //{
+        //    if (AlgorithmDivision() == true)
+        //    {
+        //        break;
+        //    }
+
+        //}
     }
-    //Generates a maze dependent on size
+
+    //public bool AlgorithmDivision()
+    //{
+    //    if (AlgorithmDivision() == true)
+    //    {
+    //        return true;
+    //    }
+    //    else
+    //    {
+
+    //    }
+    //}
+
+
+    //Destroys a maze
     public void DestroyMaze()
     {
 
@@ -61,7 +85,7 @@ public class MazeGenerator : MonoBehaviour
     //Called when this game object is enabled
     void OnEnable()
     {
-       
+
     }
 
     //Called when this game object is disabled
@@ -80,15 +104,39 @@ public class MazeGenerator : MonoBehaviour
             if (grid.tileGrid.Count > 0)
                 for (int i = 0; i < grid.tileGrid.Count; i++)
                 {
-                    if (grid.tileGrid[i].GetComponent<Tile>().isWall)
-                    {
-                        Gizmos.color = Color.black;
-                    }
-                    else
-                    {
                         Gizmos.color = Color.white;
+                    
+                    Gizmos.DrawCube(grid.tileGrid[i].transform.position, new Vector3(1, 0.1F, 1));
+
+                    Gizmos.color = Color.black;
+                    Vector3 tilePos = grid.tileGrid[i].transform.position;
+                    
+                    Tile tile = grid.tileGrid[i].GetComponent<Tile>();
+                    tilePos = new Vector3(tilePos.x - (tile.size/2), tilePos.y + 0.1F, tilePos.z - (tile.size/2));
+                    for (int j = 0; j < tile.walls.Length; j++)
+                    {
+                        if (tile.walls[j] == true)
+                        {
+                            switch (j)
+                            {
+                                case 0: //up
+                                    Gizmos.DrawLine(new Vector3(tilePos.x,tilePos.y,tilePos.z+tile.size), new Vector3(tilePos.x + tile.size, tilePos.y, tilePos.z + tile.size));
+                                    break;
+                                case 1: //down
+                                    Gizmos.DrawLine(tilePos, new Vector3(tilePos.x + tile.size, tilePos.y, tilePos.z));
+                                    break;
+                                case 2: //left
+                                    Gizmos.DrawLine(tilePos, new Vector3(tilePos.x , tilePos.y, tilePos.z + tile.size));
+                                    break;
+                                case 3: //right
+                                    Gizmos.DrawLine(new Vector3(tilePos.x + tile.size, tilePos.y, tilePos.z), new Vector3(tilePos.x + tile.size, tilePos.y, tilePos.z + tile.size));
+                                    break;
+                            }
+                        }
                     }
-                    Gizmos.DrawCube(grid.tileGrid[i].transform.position, new Vector3(1,0.1F,1));
+                    
+
+
                 }
         }
     }

@@ -12,15 +12,16 @@ public class Grid : MonoBehaviour
     //Holds all the gameObjects of the grid
     public List<GameObject> tileGrid;
 
-    //Holds all the GameObjects of the grid that are listed as wall.
-    public List<GameObject> wallList;
+    //Holds all the GameObjects of the grid that are listed as edge.
+    public List<GameObject> edgeList;
 
     //Contains the prefab that we generate
     public GameObject tilePrefab;
 
-
-    //Holds tiles and parent location
-    private Transform gridParent;
+    //Holds entry and exit points for maze 
+    //TODO: Add this as an extension of grid
+    private GameObject entry;
+    private GameObject exit;
 
     //Magic numbers
     public const int DIVIDER = 2;
@@ -32,7 +33,7 @@ public class Grid : MonoBehaviour
     {
         ChangeSeed(seed);
 
-        wallList = new List<GameObject>();
+        edgeList = new List<GameObject>();
         tileGrid = new List<GameObject>();
         Generate(xSize, ySize);
         Debug.Log("Generated");
@@ -56,8 +57,20 @@ public class Grid : MonoBehaviour
                 tileGrid[i].transform.position.x == (xSize - 1) ||
                 tileGrid[i].transform.position.z == (ySize - 1))
             {
-                //If it is on the edge, mark it as a wall and add it to the wall list.
-                AddToWallList(tileGrid[i]);
+                //Add to a list of edges
+                AddToEdgeList(tileGrid[i]);
+                //If it is on the edge, mark the walls
+                //TODO: add different sides of wall 
+                Tile thisTile = tileGrid[i].GetComponent<Tile>();
+                for (int j = 0; j < thisTile.walls.Length; j++)
+                {
+                    if (thisTile.neighbours[j] == null)
+                    {
+                        thisTile.walls[j] = true;
+                    }
+                }
+
+             
             }
 
 
@@ -71,32 +84,32 @@ public class Grid : MonoBehaviour
         Debug.Log("Setting entry points");
 
         int attempts = 0;
-        int entryIndex = Random.Range(0, (wallList.Count - 1));
+        int entryIndex = Random.Range(0, (edgeList.Count - 1));
         while (attempts < 1000)
         {
             attempts++;
-            if (wallList[entryIndex].transform.position.x == transform.position.x &
-                wallList[entryIndex].transform.position.z == transform.position.z || //0,0
-                wallList[entryIndex].transform.position.x == transform.position.x &
-                wallList[entryIndex].transform.position.z == transform.position.z + ySize-1 || //0,3
-                wallList[entryIndex].transform.position.x == transform.position.x + xSize-1 &
-                wallList[entryIndex].transform.position.z == transform.position.z + ySize-1 || //3,3
-                wallList[entryIndex].transform.position.x == transform.position.x + xSize-1 &
-                wallList[entryIndex].transform.position.z == transform.position.z) //3,0
+            if (edgeList[entryIndex].transform.position.x == transform.position.x &
+                edgeList[entryIndex].transform.position.z == transform.position.z || //0,0
+                edgeList[entryIndex].transform.position.x == transform.position.x &
+                edgeList[entryIndex].transform.position.z == transform.position.z + ySize-1 || //0,3
+                edgeList[entryIndex].transform.position.x == transform.position.x + xSize-1 &
+                edgeList[entryIndex].transform.position.z == transform.position.z + ySize-1 || //3,3
+                edgeList[entryIndex].transform.position.x == transform.position.x + xSize-1 &
+                edgeList[entryIndex].transform.position.z == transform.position.z) //3,0
             {
                 
-                entryIndex = Random.Range(0, (wallList.Count - 1));
+                entryIndex = Random.Range(0, (edgeList.Count - 1));
             }
             else
             {
-                Debug.Log(wallList[entryIndex].transform.position.x + "|" + wallList[entryIndex].transform.position.z);
+                Debug.Log(edgeList[entryIndex].transform.position.x + "|" + edgeList[entryIndex].transform.position.z);
                 break;
             }
         }
         Debug.Log("attempts made:" + attempts);
         attempts = 0;
         Debug.Log(entryIndex);
-        int exitIndex = Random.Range(0, (wallList.Count - 1));
+        int exitIndex = Random.Range(0, (edgeList.Count - 1));
 
         attempts = 0;
         while (attempts < 200)
@@ -106,21 +119,21 @@ public class Grid : MonoBehaviour
 
             //Assign a new random index for the exit
 
-            exitIndex = Random.Range(0, (wallList.Count - 1));
-            if (wallList[exitIndex].transform.position.x == transform.position.x &
-                wallList[exitIndex].transform.position.z == transform.position.z || //0,0
-                wallList[exitIndex].transform.position.x == transform.position.x &
-                wallList[exitIndex].transform.position.z == transform.position.z + ySize -1 || //0,3
-                wallList[exitIndex].transform.position.x == transform.position.x + xSize -1&
-                wallList[exitIndex].transform.position.z == transform.position.z + ySize -1 || //3,3
-                wallList[exitIndex].transform.position.x == transform.position.x + xSize -1 &
-                wallList[exitIndex].transform.position.z == transform.position.z) //3,0
+            exitIndex = Random.Range(0, (edgeList.Count - 1));
+            if (edgeList[exitIndex].transform.position.x == transform.position.x &
+                edgeList[exitIndex].transform.position.z == transform.position.z || //0,0
+                edgeList[exitIndex].transform.position.x == transform.position.x &
+                edgeList[exitIndex].transform.position.z == transform.position.z + ySize -1 || //0,3
+                edgeList[exitIndex].transform.position.x == transform.position.x + xSize -1&
+                edgeList[exitIndex].transform.position.z == transform.position.z + ySize -1 || //3,3
+                edgeList[exitIndex].transform.position.x == transform.position.x + xSize -1 &
+                edgeList[exitIndex].transform.position.z == transform.position.z) //3,0
                 continue;
             else
             {
                 //assign a new distance and see if the entry and exit are apart 
-                distance = Vector3.Distance(wallList[entryIndex].transform.position,
-                    wallList[exitIndex].transform.position);
+                distance = Vector3.Distance(edgeList[entryIndex].transform.position,
+                    edgeList[exitIndex].transform.position);
                 Debug.Log("Distance captured: " + distance);
                 if (distance > xSize / DIVIDER | distance > ySize / DIVIDER)
                 {
@@ -133,11 +146,11 @@ public class Grid : MonoBehaviour
 
         if (distance > xSize / DIVIDER | distance > ySize / DIVIDER)
         {
-            Debug.Log("Found an suitable entry [" + entryIndex + "(" + wallList[entryIndex].transform.position + ")] and exit point[" + exitIndex + "(" + wallList[exitIndex].transform.position + ")]");
-            GameObject exit = wallList[exitIndex];
-            GameObject entry = wallList[entryIndex];
-            RemoveWallListItem(entry);
-            RemoveWallListItem(exit);
+            Debug.Log("Found an suitable entry [" + entryIndex + "(" + edgeList[entryIndex].transform.position + ")] and exit point[" + exitIndex + "(" + edgeList[exitIndex].transform.position + ")]");
+            exit = edgeList[exitIndex];
+            entry = edgeList[entryIndex];
+            //RemoveWallListItem(entry);
+            //RemoveWallListItem(exit);
 
             return;
 
@@ -163,14 +176,62 @@ public class Grid : MonoBehaviour
             {
                 //instantiate and keep the tile in a list for reference 
                 GameObject tile = Instantiate(tilePrefab, new Vector3(i, transform.position.y, j), Quaternion.identity, transform);
+                tile.GetComponent<Tile>().position = new Vector2(i, j);
                 tileGrid.Add(tile);
 
             }
 
         }
+
+        //fill neighbours
+        for (int i = 0; i < tileGrid.Count; i++)
+        {
+            Tile tile = tileGrid[i].GetComponent<Tile>();
+            for (int j = 0; j < tile.neighbours.Length; j++)
+            {
+                tile.neighbours[j] = GetNeighbourTile(tile, j);
+            }
+        }
+
     }
 
+    Tile GetNeighbourTile(Tile from ,int i)
+    {
+        for (int j = 0; j < tileGrid.Count; j++)
+        {
+            switch (i)
+            {
+                case 0: //up
+                    if (new Vector2(from.position.x,from.position.y+1) == tileGrid[j].GetComponent<Tile>().position)
+                    {
+                        return tileGrid[i].GetComponent<Tile>();
+                    }
 
+                    break;
+                case 1: //down
+                    if (new Vector2(from.position.x, from.position.y - 1) == tileGrid[j].GetComponent<Tile>().position)
+                    {
+                        return tileGrid[i].GetComponent<Tile>();
+                    }
+                    break;
+                case 2: //left
+                    if (new Vector2(from.position.x - 1, from.position.y) == tileGrid[j].GetComponent<Tile>().position)
+                    {
+                        return tileGrid[i].GetComponent<Tile>();
+                    }
+                    break;
+                case 3: //right
+                    if (new Vector2(from.position.x +1, from.position.y) == tileGrid[j].GetComponent<Tile>().position)
+                    {
+                        return tileGrid[i].GetComponent<Tile>();
+                    }
+                    break;
+            }
+        }
+      
+        //return if no results are matched
+        return null;
+    }
 
     #endregion
 
@@ -183,17 +244,11 @@ public class Grid : MonoBehaviour
         Random.InitState(seed);
     }
 
-    public void AddToWallList(GameObject tileObject)
-    {
-        tileObject.GetComponent<Tile>().isWall = true;
-        wallList.Add(tileObject);
+ 
 
-    }
-
-    public void RemoveWallListItem(GameObject tileObject)
+    public void AddToEdgeList(GameObject tileObject)
     {
-        tileObject.GetComponent<Tile>().isWall = false;
-        wallList.Remove(tileObject);
+        edgeList.Add(tileObject);
 
     }
     #endregion
